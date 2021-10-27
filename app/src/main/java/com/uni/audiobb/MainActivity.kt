@@ -1,5 +1,6 @@
 package com.uni.audiobb
 
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -25,12 +26,17 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(applicationContext, library.size.toString(), Toast.LENGTH_SHORT).show()
         val bookListFragment = BookListFragment.newInstance(library)
+//
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 setReorderingAllowed(true)
                 add(R.id.fragment_book_list_view, bookListFragment)
-//                add<DisplayFragment>(R.id.fragment_container_view2)
+//                add(R.id.fragment_book_detail_view, bookDetailsFragment).addToBackStack(null)
             }
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
 }

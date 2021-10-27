@@ -10,7 +10,7 @@ import androidx.fragment.app.commit
 import androidx.recyclerview.widget.RecyclerView
 
 
-class BookAdapter(private val activity: MainActivity, private var list:BookList): RecyclerView.Adapter<BookAdapter.Viewholder>() {
+class BookAdapter(private val activity: MainActivity, private var list:BookList, var viewModel: BookViewModel): RecyclerView.Adapter<BookAdapter.Viewholder>() {
     class Viewholder(itemView: View):RecyclerView.ViewHolder(itemView){
         var title: TextView = itemView.findViewById(R.id.titleTextView)
         var author: TextView = itemView.findViewById(R.id.authorTextView)
@@ -33,12 +33,13 @@ class BookAdapter(private val activity: MainActivity, private var list:BookList)
 
         holder.itemView.setOnClickListener {
             Toast.makeText(activity, list[position].title, Toast.LENGTH_SHORT).show()
+            viewModel.setBook(list[position])
 
-            val bookDetailsFragment = BookDetailsFragment.newInstance(list[position])
-
+            val bookDetailsFragment = BookDetailsFragment()
             activity.supportFragmentManager.commit {
                 setReorderingAllowed(true)
-                add(R.id.fragment_book_detail_view, bookDetailsFragment)
+                replace(R.id.fragment_book_list_view, bookDetailsFragment).addToBackStack(null)
+//                add(R.id.fragment_book_list_view, bookDetailsFragment).addToBackStack(null)
             }
         }
     }

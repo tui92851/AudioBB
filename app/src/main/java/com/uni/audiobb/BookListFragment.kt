@@ -6,11 +6,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class BookListFragment : Fragment() {
+
+    private val viewModel: BookViewModel by activityViewModels()
+
     companion object {
         private const val BOOKS = "BOOKS"
         fun newInstance(library: BookList) = BookListFragment().apply {
@@ -31,7 +35,7 @@ class BookListFragment : Fragment() {
 
         recyclerView?.layoutManager = manager
         val library = arguments?.get("BOOKS") as BookList
-        recyclerView?.adapter = BookAdapter(activity as MainActivity, library)
+        recyclerView?.adapter = BookAdapter(activity as MainActivity, library, viewModel)
         return view
     }
 }
