@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.commit
 import androidx.recyclerview.widget.RecyclerView
 
 
@@ -27,12 +28,18 @@ class BookAdapter(private val activity: MainActivity, private var list:BookList)
     }
 
     override fun onBindViewHolder(holder: Viewholder, position: Int) {
-        Toast.makeText(activity, position.toString(), Toast.LENGTH_SHORT).show()
         holder.title.text = list[position].title
         holder.author.text = list[position].author
-//
-//        holder.itemView.setOnClickListener {
-//            viewModel.setMovie(MovieModel(list[position].text,list[position].imageId))
-//        }
+
+        holder.itemView.setOnClickListener {
+            Toast.makeText(activity, list[position].title, Toast.LENGTH_SHORT).show()
+
+            val bookDetailsFragment = BookDetailsFragment.newInstance(list[position])
+
+            activity.supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                add(R.id.fragment_book_detail_view, bookDetailsFragment)
+            }
+        }
     }
 }
