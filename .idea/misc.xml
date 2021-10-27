@@ -3,7 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout-land/activity_main.xml" value="0.14153439153439154" />
+        <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout-sw600dp/activity_main.xml" value="0.125390625" />
         <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout/activity_main.xml" value="0.24094202898550723" />
+        <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout/fragment_book_details.xml" value="0.2453125" />
+        <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout/fragment_book_list.xml" value="0.1671875" />
+        <entry key="..\:/Users/daian/AndroidStudioProjects/AudioBB/app/src/main/res/layout/library_item.xml" value="0.2453125" />
       </map>
     </option>
   </component>
