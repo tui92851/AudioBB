@@ -5,13 +5,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 
 class BookAdapter(private val activity: MainActivity, private var list:BookList): RecyclerView.Adapter<BookAdapter.Viewholder>() {
     class Viewholder(itemView: View):RecyclerView.ViewHolder(itemView){
-//        var textValue: TextView = itemView.findViewById(R.id.title)
-//        var imageView: ImageView = itemView.findViewById(R.id.imageView)
+        var title: TextView = itemView.findViewById(R.id.titleTextView)
+        var author: TextView = itemView.findViewById(R.id.authorTextView)
 
     }
 
@@ -26,8 +27,9 @@ class BookAdapter(private val activity: MainActivity, private var list:BookList)
     }
 
     override fun onBindViewHolder(holder: Viewholder, position: Int) {
-//        holder.textValue.text = list[position].text
-//        holder.imageView.setImageResource(list[position].imageId)
+        Toast.makeText(activity, position.toString(), Toast.LENGTH_SHORT).show()
+        holder.title.text = list[position].title
+        holder.author.text = list[position].author
 //
 //        holder.itemView.setOnClickListener {
 //            viewModel.setMovie(MovieModel(list[position].text,list[position].imageId))
