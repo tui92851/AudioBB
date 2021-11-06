@@ -1,3 +1,5 @@
 package com.uni.audiobb
 
-data class BookModel(var title:String, var author:String)
+import java.io.Serializable
+
+data class BookModel(var title:String, var author:String) : Serializable

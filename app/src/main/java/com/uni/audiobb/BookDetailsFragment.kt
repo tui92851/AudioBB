@@ -24,12 +24,19 @@ class BookDetailsFragment : Fragment() {
         bookTitle = view.findViewById(R.id.titleTextView2)
         bookAuthor = view.findViewById(R.id.authorTextView2)
 
-        viewModel.getBook().observe(viewLifecycleOwner, { book ->
-            activity?.title = book.title
-            bookTitle.text  = book.title
-            bookAuthor.text = book.author
-        })
-
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.getSelectedBook().observe(requireActivity(), {updateBook(it)})
+    }
+
+    private fun updateBook(book:BookModel?){
+        book?.run {
+            bookTitle.text = title
+            bookAuthor.text = author
+        }
     }
 }

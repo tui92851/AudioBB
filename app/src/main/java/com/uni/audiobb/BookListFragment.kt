@@ -7,19 +7,30 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
+private const val BOOKS = "BOOKS"
 class BookListFragment : Fragment() {
 
     private val viewModel: BookViewModel by activityViewModels()
+    private lateinit var bookList: BookList
 
     companion object {
-        private const val BOOKS = "BOOKS"
+
         fun newInstance(library: BookList) = BookListFragment().apply {
             arguments = bundleOf(BOOKS to library)
         }
+    }
+
+    interface BookSelectedInterface {
+        fun bookSelected()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        bookList = arguments?.getSerializable(BOOKS) as BookList
     }
 
     override fun onCreateView(
@@ -27,15 +38,23 @@ class BookListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_book_list, container, false)
+        return inflater.inflate(R.layout.fragment_book_list, container, false)
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val onClick : (BookModel) -> Unit = {
+            //Updating view model on book selection
+            book: BookModel -> viewModel.setSelectedBook(book)
+            //Informing activity to prevent replay of event when it restarts
+            (activity as BookSelectedInterface).bookSelected()
+        }
 
         val manager = LinearLayoutManager(activity)
-        val recyclerView = view?.findViewById<RecyclerView>(R.id.recyclerview)
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerview)
 
         recyclerView?.layoutManager = manager
-        val library = arguments?.get("BOOKS") as BookList
-        recyclerView?.adapter = BookAdapter(activity as MainActivity, library, viewModel)
-        return view
+        recyclerView?.adapter = BookListAdapter(bookList, onClick)
     }
 }
