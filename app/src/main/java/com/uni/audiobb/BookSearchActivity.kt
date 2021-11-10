@@ -1,12 +1,15 @@
 package com.uni.audiobb
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Window
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.commit
@@ -27,7 +30,8 @@ class BookSearchActivity : AppCompatActivity() {
     private lateinit var searchButton: Button
     private lateinit var closeButton: Button
     private val client = OkHttpClient()
-    private val viewModel: BookViewModel by viewModels()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,18 +57,18 @@ class BookSearchActivity : AppCompatActivity() {
             val listType = Types.newParameterizedType(List::class.java, BookModel::class.java)
             val adapter: JsonAdapter<List<BookModel>> = moshi.adapter(listType)
             val library: List<BookModel>? = adapter.fromJson(response?.body?.source()!!)
-//            Toast.makeText(this, library?.size.toString(), Toast.LENGTH_SHORT  ).show()
+
             if (library != null) {
                 BookList.clear()
                 BookList.addLibrary(library)
             }
 
-//            viewModel.listener.onLibraryUpdated()
-
             Toast.makeText(this, BookList.size().toString(), Toast.LENGTH_SHORT).show()
         }
 
         closeButton.setOnClickListener{
+            val i = Intent()
+            setResult(RESULT_OK, i)
             this.finish()
         }
 
@@ -80,7 +84,6 @@ class BookSearchActivity : AppCompatActivity() {
 
         runBlocking(Dispatchers.IO) {
             response = client.newCall(request).execute()
-//            result = response?.body?.string().toString()
         }
 
         return response

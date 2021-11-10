@@ -42,7 +42,6 @@ class BookDetailsFragment : Fragment() {
             bookTitle.text = title
             bookAuthor.text = author
             Picasso.get().load(cover_url).into(bookCover)
-//            bookCover.setImageResource()
         }
     }
 }

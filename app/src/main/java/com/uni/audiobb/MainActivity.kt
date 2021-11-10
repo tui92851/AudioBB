@@ -1,6 +1,7 @@
 package com.uni.audiobb
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
@@ -9,33 +10,37 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import java.lang.ref.WeakReference
 
-class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface, LibraryInterface {
+class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface{
     private val viewModel: BookViewModel by viewModels()
     private val isOnePane: Boolean by lazy {
         findViewById<View>(R.id.container2) == null
     }
     private lateinit var mainSearchButton: Button
-//    lateinit var listener:LibraryInterface
+    private val intentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+
+            if (result.resultCode == Activity.RESULT_OK) {
+                supportFragmentManager.commit {
+                    replace(R.id.container1, BookListFragment())
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel.listener = this
 
         mainSearchButton = findViewById(R.id.mainSearchButton)
 
         mainSearchButton.setOnClickListener {
-            supportFragmentManager.commit {
-                replace(R.id.container1, BookListFragment())
-            }
-            val intent = Intent(this, BookSearchActivity::class.java)
-            startActivity(intent)
+            intentLauncher.launch(Intent(this, BookSearchActivity::class.java))
         }
 
         //clear book details fragment in container 1 if switching to two pane
@@ -76,13 +81,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
                 setReorderingAllowed(true)
                 addToBackStack(null)
             }
-        }
-    }
-
-    override fun onLibraryUpdated() {
-        Toast.makeText(this, BookList.size().toString(), Toast.LENGTH_SHORT).show()
-        supportFragmentManager.commit {
-            replace(R.id.container1, BookListFragment())
         }
     }
 }

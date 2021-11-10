@@ -18,9 +18,4 @@ class BookViewModel : ViewModel(){
     fun setSelectedBook(selectedBook: BookModel?) {
         this.book.value = selectedBook
     }
-
-
-    lateinit var listener:LibraryInterface
-
-
 }

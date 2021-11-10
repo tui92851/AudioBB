@@ -15,23 +15,9 @@ private const val BOOKS = "BOOKS"
 class BookListFragment : Fragment() {
 
     private val viewModel: BookViewModel by activityViewModels()
-//    private lateinit var bookList: BookList
-//
-//    companion object {
-//
-//        fun newInstance(library: BookList) = BookListFragment().apply {
-//            arguments = bundleOf(BOOKS to library)
-//        }
-//    }
 
     interface BookSelectedInterface {
         fun bookSelected()
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-//        bookList = arguments?.getSerializable(BOOKS) as BookList
     }
 
     override fun onCreateView(
@@ -57,7 +43,6 @@ class BookListFragment : Fragment() {
 
         recyclerView?.layoutManager = manager
 
-//        BookList.add(BookModel(0, "as", "sdf", "a"))
         recyclerView?.adapter = BookListAdapter(BookList, onClick)
 
     }
