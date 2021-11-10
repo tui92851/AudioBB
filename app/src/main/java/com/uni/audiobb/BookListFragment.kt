@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,14 +15,14 @@ private const val BOOKS = "BOOKS"
 class BookListFragment : Fragment() {
 
     private val viewModel: BookViewModel by activityViewModels()
-    private lateinit var bookList: BookList
-
-    companion object {
-
-        fun newInstance(library: BookList) = BookListFragment().apply {
-            arguments = bundleOf(BOOKS to library)
-        }
-    }
+//    private lateinit var bookList: BookList
+//
+//    companion object {
+//
+//        fun newInstance(library: BookList) = BookListFragment().apply {
+//            arguments = bundleOf(BOOKS to library)
+//        }
+//    }
 
     interface BookSelectedInterface {
         fun bookSelected()
@@ -30,7 +31,7 @@ class BookListFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        bookList = arguments?.getSerializable(BOOKS) as BookList
+//        bookList = arguments?.getSerializable(BOOKS) as BookList
     }
 
     override fun onCreateView(
@@ -55,6 +56,9 @@ class BookListFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerview)
 
         recyclerView?.layoutManager = manager
-        recyclerView?.adapter = BookListAdapter(bookList, onClick)
+
+//        BookList.add(BookModel(0, "as", "sdf", "a"))
+        recyclerView?.adapter = BookListAdapter(BookList, onClick)
+
     }
 }
