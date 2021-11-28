@@ -21,15 +21,15 @@ class BookViewModel : ViewModel(){
     }
 
 
-    private val progress: MutableLiveData<PlayerService.BookProgress> by lazy {
+    private val progress: MutableLiveData<Int> by lazy {
         MutableLiveData()
     }
 
-    fun getProg(): LiveData<PlayerService.BookProgress> {
+    fun getProg(): LiveData<Int> {
         return progress
     }
 
-    fun setProg(progress: PlayerService.BookProgress?) {
+    fun setProg(progress: Int?) {
         this.progress.value = progress
     }
 }

@@ -10,9 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
-import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
-import edu.temple.audlibplayer.PlayerService
 import kotlin.math.roundToInt
 
 
@@ -25,7 +23,9 @@ class ControlFragment : Fragment() {
     lateinit var btPlay:ImageView
     lateinit var btPause:ImageView
     lateinit var btFf:ImageView
-    lateinit var stop:ImageView
+    lateinit var btStop:ImageView
+    lateinit var btResume:ImageView
+    lateinit var currentlyPlaying : TextView
 
     private val viewModel: BookViewModel by activityViewModels()
 //    companion object {
@@ -45,6 +45,7 @@ class ControlFragment : Fragment() {
         fun forward()
         fun rewind()
         fun stop()
+        fun resume()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -56,50 +57,96 @@ class ControlFragment : Fragment() {
         btPlay = view.findViewById(R.id.btn_play)
         btPause = view.findViewById(R.id.btn_pause)
         btFf = view.findViewById(R.id.btn_ff)
-        stop = view.findViewById(R.id.btn_stop)
+        btStop = view.findViewById(R.id.btn_stop)
+        btResume = view.findViewById(R.id.btn_resume)
+        currentlyPlaying = view.findViewById(R.id.nowPlayingTextView)
 
         viewModel.getSelectedBook().observe(viewLifecycleOwner, { book ->
 
-            playerDuration.text = timeElapsed(book.duration)
+//            (activity as PlayerControlInterface).stop()
 
-            viewModel.getProg().observe(viewLifecycleOwner, { prog ->
-                val elapsed = ((prog.progress.toDouble()/book.duration.toDouble()) * 100f).roundToInt()
-                Log.d("apple", "$elapsed%")
-                seekBar.progress = elapsed
-                playerPosition.text = timeElapsed(prog.progress)
+            if (book != null){
+                currentlyPlaying.text = "Now Playing: ${book.title}..."
                 playerDuration.text = timeElapsed(book.duration)
-            })
 
-            btPlay.setOnClickListener {
-                btPlay.visibility = View.GONE
-                btPause.visibility = View.VISIBLE
-                (activity as PlayerControlInterface).play(book.id)
-            }
+                btPlay.setOnClickListener {
+                    btPlay.visibility = View.GONE
+                    btPause.visibility = View.VISIBLE
+                    btResume.visibility = View.GONE
+                    (activity as PlayerControlInterface).play(book.id)
+                    Log.d("apple", "play was clicked")
+                }
 
-            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                    if(fromUser){
-                        Log.d("apple", "progress: $progress")
-                        val newPosition = (progress.toDouble()/100f) * book.duration
-                        (activity as PlayerControlInterface).seek(newPosition)
+                viewModel.getProg().observe(viewLifecycleOwner, { progress ->
+                    val elapsed = ((progress.toDouble()/book.duration.toDouble()) * 100f).roundToInt()
+                    Log.d("apple", "$elapsed%")
+                    seekBar.progress = elapsed
+                    playerPosition.text = timeElapsed(progress)
+                    playerDuration.text = timeElapsed(book.duration)
+
+                    if(elapsed == 100){
+                        btPlay.visibility = View.VISIBLE
+                        btPause.visibility = View.GONE
+                        btResume.visibility = View.GONE
                     }
-                }
-                override fun onStartTrackingTouch(p0: SeekBar?) {
-                }
-                override fun onStopTrackingTouch(p0: SeekBar?) {
-                }
-            })
+                })
 
+                val progress = viewModel.getProg().value
+                Log.d("apple", "CURRENT PROGRESS: $progress")
+                if(progress == null) {
+                    btPlay.visibility = View.VISIBLE
+                    btPause.visibility = View.GONE
+                    btResume.visibility = View.GONE
+                }else{
+                    btPlay.visibility = View.GONE
+                    btPause.visibility = View.VISIBLE
+                    btResume.visibility = View.GONE
+                }
+
+
+
+                seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                        if(fromUser){
+                            Log.d("apple", "progress: $progress")
+                            val newPosition = (progress.toDouble()/100f) * book.duration
+                            (activity as PlayerControlInterface).seek(newPosition)
+                        }
+                    }
+                    override fun onStartTrackingTouch(p0: SeekBar?) {
+                    }
+                    override fun onStopTrackingTouch(p0: SeekBar?) {
+                    }
+                })
+            }
         })
 
         btPause.setOnClickListener {
             btPause.visibility = View.GONE
-            btPlay.visibility = View.VISIBLE
+            btPlay.visibility = View.GONE
+            btResume.visibility = View.VISIBLE
+
             (activity as PlayerControlInterface).pause()
+            Log.d("apple", "pause was clicked")
         }
 
-        stop.setOnClickListener {
+        btStop.setOnClickListener {
+            btPlay.visibility = View.VISIBLE
+            btPause.visibility = View.GONE
+            btResume.visibility = View.GONE
+
+            seekBar.progress = 0
+            viewModel.setProg(0)
             (activity as PlayerControlInterface).stop()
+        }
+
+        btResume.setOnClickListener {
+            btPause.visibility = View.VISIBLE
+            btPlay.visibility = View.GONE
+            btResume.visibility = View.GONE
+
+            (activity as PlayerControlInterface).resume()
+            Log.d("apple", "resume was clicked")
         }
 
         btFf.setOnClickListener {

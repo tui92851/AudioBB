@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
     val playerHandler = object:  Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             if (msg.obj != null){
-                viewModel.setProg(msg.obj as PlayerService.BookProgress)
+                viewModel.setProg((msg.obj as PlayerService.BookProgress).progress)
             }
         }
     }
@@ -48,18 +48,6 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
             Log.d("apple", "we have connected")
             playerService = service as PlayerService.MediaControlBinder
             playerService.setProgressHandler(playerHandler)
-
-            controlFragment = ControlFragment()
-            supportFragmentManager.commit {
-                add(R.id.container3, controlFragment)
-//                show(controlFragment)
-                Log.d("apple", "helo there")
-                hide(controlFragment)
-//            addToBackStack(null)
-            }
-//            playerService.play(3)
-//            supportFragmentManager.beginTransaction().hide(controlFragment)
-
 
         }
 
@@ -74,7 +62,11 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+        controlFragment = ControlFragment()
+        supportFragmentManager.commit {
+            add(R.id.playerContainer, controlFragment)
+//                hide(controlFragment)
+        }
 
         mainSearchButton = findViewById(R.id.search_button)
 
@@ -134,45 +126,61 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
             }
         }
 
-        supportFragmentManager.beginTransaction().show(controlFragment).commit()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unbindService(serviceConnection)
+        if (playerService.isPlaying){
+            playerService.stop()
+        }
+        supportFragmentManager.commit {
+            remove(controlFragment)
+            add(R.id.playerContainer, controlFragment)
+//                hide(controlFragment)
+        }
     }
 
     override fun play(id: Int) {
-        playerService.play(id)
-
-//        val position = viewModel.getProg().value?.progress
-//        Log.d("apple", "OUR CURRENT POSITION $position")
-//        if (position != null) {
-//            if (position > 0) position.let { playerService.seekTo(it) }
-//        }
+        if (!playerService.isPlaying){
+            playerService.play(id)
+        }
     }
 
     override fun pause() {
-        playerService.pause()
+        if(playerService.isPlaying) {
+            playerService.pause()
+        }
     }
 
     override fun seek(position: Double) {
-        playerService.seekTo(position.toInt())
+        if(playerService.isPlaying) {
+            playerService.seekTo(position.toInt())
+        }
     }
 
     override fun forward() {
         if(playerService.isPlaying){
-            viewModel.getProg().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
+            viewModel.getProg().value?.let { it1 -> playerService.seekTo(it1 + 10) }
         }
     }
 
     override fun rewind() {
         if(playerService.isPlaying){
-            viewModel.getProg().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
+            viewModel.getProg().value?.let { it1 -> playerService.seekTo(it1 - 10) }
         }
     }
 
     override fun stop() {
-        playerService.stop()
+        if (playerService.isPlaying) {
+            playerService.stop()
+        }
+    }
+
+    override fun resume() {
+        if(!playerService.isPlaying) {
+            val position = viewModel.getProg().value
+            Log.d("apple", "OUR CURRENT POSITION $position")
+            if (position != null) {
+                playerService.seekTo(position)
+            }
+
+            playerService.pause()
+        }
     }
 }
