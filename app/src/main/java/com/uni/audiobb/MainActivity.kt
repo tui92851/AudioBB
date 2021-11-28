@@ -126,13 +126,12 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
             }
         }
 
-        if (playerService.isPlaying){
-            playerService.stop()
-        }
+//        if (playerService.isPlaying){
+//            playerService.stop()
+//        }
         supportFragmentManager.commit {
             remove(controlFragment)
             add(R.id.playerContainer, controlFragment)
-//                hide(controlFragment)
         }
     }
 
