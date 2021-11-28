@@ -8,5 +8,6 @@ data class BookModel(
     var id: Int,
     var title:String,
     var author:String,
-    var cover_url: String
+    var cover_url: String,
+    var duration:Int
     ) : Serializable

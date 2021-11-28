@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
+import edu.temple.audlibplayer.PlayerService
 
 class BookViewModel : ViewModel(){
 
@@ -17,5 +18,18 @@ class BookViewModel : ViewModel(){
 
     fun setSelectedBook(selectedBook: BookModel?) {
         this.book.value = selectedBook
+    }
+
+
+    private val progress: MutableLiveData<PlayerService.BookProgress> by lazy {
+        MutableLiveData()
+    }
+
+    fun getProg(): LiveData<PlayerService.BookProgress> {
+        return progress
+    }
+
+    fun setProg(progress: PlayerService.BookProgress?) {
+        this.progress.value = progress
     }
 }

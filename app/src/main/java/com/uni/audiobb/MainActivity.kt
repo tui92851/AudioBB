@@ -1,28 +1,25 @@
 package com.uni.audiobb
 
-import android.Manifest
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Intent
-import android.content.res.Configuration
+import android.content.ServiceConnection
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.Toast
+import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
-import java.lang.ref.WeakReference
+import edu.temple.audlibplayer.PlayerService
 
-class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface{
+class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface, ControlFragment.PlayerControlInterface{
     private val viewModel: BookViewModel by viewModels()
     private val isOnePane: Boolean by lazy {
         findViewById<View>(R.id.container2) == null
     }
-    private lateinit var mainSearchButton: Button
+    private lateinit var mainSearchButton: ImageView
     private val intentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
 
@@ -33,11 +30,55 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
             }
         }
 
+    lateinit var playerService: PlayerService.MediaControlBinder
+    var isConnected = false
+    val playerHandler = object:  Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            if (msg.obj != null){
+                viewModel.setProg(msg.obj as PlayerService.BookProgress)
+            }
+        }
+    }
+
+    private lateinit var controlFragment: ControlFragment
+
+    private val serviceConnection = object : ServiceConnection{
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            isConnected = true
+            Log.d("apple", "we have connected")
+            playerService = service as PlayerService.MediaControlBinder
+            playerService.setProgressHandler(playerHandler)
+
+            controlFragment = ControlFragment()
+            supportFragmentManager.commit {
+                add(R.id.container3, controlFragment)
+//                show(controlFragment)
+                Log.d("apple", "helo there")
+                hide(controlFragment)
+//            addToBackStack(null)
+            }
+//            playerService.play(3)
+//            supportFragmentManager.beginTransaction().hide(controlFragment)
+
+
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isConnected = false
+            Log.d("apple", "we have disconnected")
+        }
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        mainSearchButton = findViewById(R.id.mainSearchButton)
+
+
+        mainSearchButton = findViewById(R.id.search_button)
+
+
 
         mainSearchButton.setOnClickListener {
             intentLauncher.launch(Intent(this, BookSearchActivity::class.java))
@@ -45,7 +86,9 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
 
         //clear book details fragment in container 1 if switching to two pane
         if (supportFragmentManager.findFragmentById(R.id.container1) is BookDetailsFragment) {
+
             supportFragmentManager.popBackStack()
+//            supportFragmentManager.popBackStack()
         }
 
         //if twoPane but no book details fragment, add it to container 2
@@ -67,6 +110,13 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
                 addToBackStack(null)
             }
         }
+
+        bindService(Intent(this, PlayerService::class.java)
+            , serviceConnection
+            , BIND_AUTO_CREATE
+        )
+
+
     }
 
     override fun onBackPressed() {
@@ -74,7 +124,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
         super.onBackPressed()
     }
 
-    override fun bookSelected() {
+    override fun bookSelected(book: BookModel) {
+        Log.d("apple", book.title + " was selected")
         if (isOnePane) {
             supportFragmentManager.commit {
                 replace(R.id.container1, BookDetailsFragment())
@@ -82,5 +133,46 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
                 addToBackStack(null)
             }
         }
+
+        supportFragmentManager.beginTransaction().show(controlFragment).commit()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unbindService(serviceConnection)
+    }
+
+    override fun play(id: Int) {
+        playerService.play(id)
+
+//        val position = viewModel.getProg().value?.progress
+//        Log.d("apple", "OUR CURRENT POSITION $position")
+//        if (position != null) {
+//            if (position > 0) position.let { playerService.seekTo(it) }
+//        }
+    }
+
+    override fun pause() {
+        playerService.pause()
+    }
+
+    override fun seek(position: Double) {
+        playerService.seekTo(position.toInt())
+    }
+
+    override fun forward() {
+        if(playerService.isPlaying){
+            viewModel.getProg().value?.progress?.let { it1 -> playerService.seekTo(it1 + 10) }
+        }
+    }
+
+    override fun rewind() {
+        if(playerService.isPlaying){
+            viewModel.getProg().value?.progress?.let { it1 -> playerService.seekTo(it1 - 10) }
+        }
+    }
+
+    override fun stop() {
+        playerService.stop()
     }
 }

@@ -17,7 +17,7 @@ class BookListFragment : Fragment() {
     private val viewModel: BookViewModel by activityViewModels()
 
     interface BookSelectedInterface {
-        fun bookSelected()
+        fun bookSelected(book:BookModel)
     }
 
     override fun onCreateView(
@@ -35,7 +35,7 @@ class BookListFragment : Fragment() {
             //Updating view model on book selection
             book: BookModel -> viewModel.setSelectedBook(book)
             //Informing activity to prevent replay of event when it restarts
-            (activity as BookSelectedInterface).bookSelected()
+            (activity as BookSelectedInterface).bookSelected(book)
         }
 
         val manager = LinearLayoutManager(activity)
