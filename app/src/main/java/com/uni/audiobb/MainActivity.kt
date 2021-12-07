@@ -1,18 +1,32 @@
 package com.uni.audiobb
 
+import android.Manifest
+import android.R.attr
 import android.app.Activity
-import android.content.ComponentName
-import android.content.Intent
-import android.content.ServiceConnection
+import android.app.DownloadManager
+import android.net.Uri
 import android.os.*
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import edu.temple.audlibplayer.PlayerService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import android.R.attr.data
+import android.content.*
+import android.content.pm.PackageManager
+import java.io.BufferedWriter
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
+
 
 class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface, ControlFragment.PlayerControlInterface{
     private val viewModel: BookViewModel by viewModels()
@@ -48,6 +62,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
             Log.d("apple", "we have connected")
             playerService = service as PlayerService.MediaControlBinder
             playerService.setProgressHandler(playerHandler)
+//            playerService.play(sharedpref.getInt("currently playing", 0))
 
         }
 
@@ -58,9 +73,25 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
 
     }
 
+    private lateinit var sharedpref : SharedPreferences
+    private lateinit var editor : SharedPreferences.Editor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        sharedpref = getSharedPreferences("BOOK_PROGRESS", Context.MODE_PRIVATE)
+        editor = sharedpref.edit()
+
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                Manifest.permission.INTERNET,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ), 1
+        )
+
 
         controlFragment = ControlFragment()
         supportFragmentManager.commit {
@@ -136,8 +167,36 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
     }
 
     override fun play(id: Int) {
+
+        val bookFileName = "${viewModel.getSelectedBook().value!!.title}.mp3"
+        val file = File(this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),bookFileName)
+
+        editor.putInt("1", 60)
         if (!playerService.isPlaying){
-            playerService.play(id)
+
+            if (file.exists()){
+                Log.d("apple", "this file exists ${id}. It is starting at ${sharedpref.getInt(id.toString(), 0)}.")
+                Toast.makeText(this, "playing audiobook from local storage", Toast.LENGTH_SHORT).show()
+                playerService.play(file, 0)
+            }else{
+                Log.d("apple", "this file doesn't exist. ${file.absolutePath}")
+                Toast.makeText(this, "downloading audiobook", Toast.LENGTH_SHORT).show()
+                playerService.play(id)
+                lifecycleScope.launch(Dispatchers.IO){
+                    Log.d("apple", "starting download")
+                    val url = "https://kamorris.com/lab/audlib/download.php?id=${viewModel.getSelectedBook().value!!.id}"
+                    Log.d("apple", "download url: $url")
+
+                    if (ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+                        Log.d("apple", "permissions were granted")
+                        download(this@MainActivity, url, viewModel.getSelectedBook().value!!.title)
+                    }else{
+                        Log.d("apple", "permissions were not granted")
+                    }
+
+                    Log.d("apple", "download finished")
+                }
+            }
         }
     }
 
@@ -150,6 +209,7 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
     override fun seek(position: Double) {
         if(playerService.isPlaying) {
             playerService.seekTo(position.toInt())
+//            Log.d("apple", "this books saved position is ${sharedpref.getInt("1", 0)}")
         }
     }
 
@@ -168,6 +228,8 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
     override fun stop() {
         if (playerService.isPlaying) {
             playerService.stop()
+            //when stop is pressed while book is playing, its progress is set to 0
+            editor.putInt(viewModel.getSelectedBook().value!!.id.toString(), 0)
         }
     }
 
@@ -181,5 +243,23 @@ class MainActivity : AppCompatActivity(), BookListFragment.BookSelectedInterface
 
             playerService.pause()
         }
+    }
+
+    override fun updateSavedProgress(id: String, position: Int) {
+        editor.putInt(id, position)
+        editor.putInt("currently playing", Integer.parseInt(id))
+    }
+
+    fun download(baseActivity:Context,url: String?,title: String?){
+        val uri = Uri.parse(url)
+        val request = DownloadManager.Request(uri)
+//        request.setTitle(title)
+        request.setMimeType("application/mp3")
+//        request.addRequestHeader("User-Agent", System.getProperty("http.agent"))
+        request.setAllowedOverMetered(true)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        request.setDestinationInExternalFilesDir(baseActivity, Environment.DIRECTORY_DOWNLOADS, "$title.mp3")
+        val  dm: DownloadManager = baseActivity.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        dm.enqueue(request)
     }
 }

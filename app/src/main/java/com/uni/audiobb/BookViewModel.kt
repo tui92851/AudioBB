@@ -1,5 +1,6 @@
 package com.uni.audiobb
 
+import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -32,4 +33,5 @@ class BookViewModel : ViewModel(){
     fun setProg(progress: Int?) {
         this.progress.value = progress
     }
+
 }

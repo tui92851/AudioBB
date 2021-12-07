@@ -28,15 +28,6 @@ class ControlFragment : Fragment() {
     lateinit var currentlyPlaying : TextView
 
     private val viewModel: BookViewModel by activityViewModels()
-//    companion object {
-//        private const val MEDIAPLAYER = "mediaplayer"
-//
-//        fun newInstance(player: PlayerService.MediaControlBinder) = ControlFragment().apply {
-//            arguments = bundleOf(
-//                MEDIAPLAYER to player
-//            )
-//        }
-//    }
 
     interface PlayerControlInterface{
         fun play(id:Int)
@@ -46,6 +37,7 @@ class ControlFragment : Fragment() {
         fun rewind()
         fun stop()
         fun resume()
+        fun updateSavedProgress(id:String, position: Int)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -79,7 +71,8 @@ class ControlFragment : Fragment() {
 
                 viewModel.getProg().observe(viewLifecycleOwner, { progress ->
                     val elapsed = ((progress.toDouble()/book.duration.toDouble()) * 100f).roundToInt()
-                    Log.d("apple", "$elapsed%")
+//                    Log.d("apple", "$elapsed%")
+                    (activity as PlayerControlInterface).updateSavedProgress(book.id.toString(), elapsed)
                     seekBar.progress = elapsed
                     playerPosition.text = timeElapsed(progress)
                     playerDuration.text = timeElapsed(book.duration)
